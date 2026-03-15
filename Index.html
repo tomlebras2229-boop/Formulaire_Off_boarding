@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulaire Offboarding | Exiom</title>
+    <link rel="icon" href="https://visvyzhogpexmdjwjjlz.supabase.co/storage/v1/object/sign/images/X%20logo%20exiom%20(1).png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZjUxNGJmZS02ZTZhLTQyZmQtYjVkMC02ZGRkZDY0YjkwOGQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpbWFnZXMvWCBsb2dvIGV4aW9tICgxKS5wbmciLCJpYXQiOjE3NzIxMzY5MTUsImV4cCI6MjA4NzQ5NjkxNX0.TzdBpCJSdvv8mqaJChtNe6J0f2tWfmM6vpcFSkZOa9Y">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #334155; --border: #cbd5e1; --error: #ef4444; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 40px 20px; line-height: 1.6; }
+        
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 50px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        
+        .logo-container { text-align: center; margin-bottom: 30px; }
+        .logo-container img { max-width: 200px; max-height: 100px; width: auto; height: auto; }
+
+        h1 { text-align: center; color: #1e293b; margin-bottom: 40px; font-size: 2rem; }
+        h2 { margin-top: 50px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; font-size: 1.25rem; color: #475569; }
+        
+        .question-block { margin-bottom: 35px; position: relative; animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        label.q-label { display: block; font-weight: 600; margin-bottom: 12px; font-size: 1.05rem; }
+        
+        input[type="text"], input[type="date"], input[type="email"], textarea {
+            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; transition: border 0.2s; box-sizing: border-box;
+        }
+        input:focus, textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        textarea { height: 100px; resize: vertical; }
+
+        /* Radio Styling */
+        .radio-group { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; padding: 10px; border-radius: 8px; border: 1px solid transparent; }
+        .radio-option { position: relative; }
+        .radio-option input { position: absolute; opacity: 0; width: 0; height: 0; }
+        .radio-option label {
+            display: flex; align-items: center; justify-content: center;
+            padding: 10px 0; width: 50px; 
+            background: white; border: 1px solid var(--border); border-radius: 8px;
+            cursor: pointer; transition: all 0.2s ease; font-weight: 500; text-align: center;
+        }
+        .wide-options .radio-option label { width: auto; padding: 10px 25px; min-width: 60px; }
+        .full-width-options .radio-option label { width: auto; padding: 10px 15px; min-width: 100%; text-align: left; justify-content: flex-start; }
+        @media (min-width: 600px) {
+            .full-width-options .radio-option label { min-width: 300px; text-align: center; justify-content: center; }
+        }
+
+        .radio-option input:checked + label { background-color: var(--primary); color: white; border-color: var(--primary); transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(37,99,235,0.3); }
+        .radio-option:hover label { border-color: var(--primary); }
+
+        .scale-line { display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 10px; }
+        .scale-text { font-size: 0.9rem; color: #64748b; font-weight: 600; white-space: nowrap; width: 80px; }
+        .scale-text.left { text-align: right; }
+        .scale-text.right { text-align: left; }
+
+        .submit-btn { width: 100%; padding: 16px; background-color: #0f172a; color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 40px; transition: background 0.2s; }
+        .submit-btn:hover { background-color: #1e293b; }
+        .submit-btn:disabled { background-color: #94a3b8; cursor: not-allowed; }
+        
+        #email_contact_div { display: none; margin-top: 20px; }
+        #email_contact_div.visible { display: block; animation: fadeIn 0.3s; }
+
+        /* Erreurs */
+        input.input-error, textarea.input-error { border-color: var(--error) !important; background-color: #fef2f2; }
+        .error-text { color: var(--error); font-size: 0.85rem; margin-top: 5px; font-weight: 600; display: none; }
+        .show-error-msg { display: block; animation: shake 0.4s ease-in-out; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+        /* Loader */
+        #loader { text-align: center; padding: 40px; color: #64748b; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="logo-container">
+        <img src="https://visvyzhogpexmdjwjjlz.supabase.co/storage/v1/object/sign/images/Logo%20exiom.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81ZjUxNGJmZS02ZTZhLTQyZmQtYjVkMC02ZGRkZDY0YjkwOGQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpbWFnZXMvTG9nbyBleGlvbS5wbmciLCJpYXQiOjE3NzIxMzY5NzQsImV4cCI6MjA4NzQ5Njk3NH0.gBqVf8WaUzpXQbYphwVYF2X1eXr6Sp0GZOingV4PSlo" alt="Logo Entreprise">
+    </div>
+
+    <h1>Bilan de Départ</h1>
+    
+    <form id="offboardingForm" novalidate>
+
+        <h2>Informations</h2>
+        
+        <div class="question-block">
+            <label class="q-label">Date du formulaire</label>
+            <input type="date" id="date_form" name="date_form" required>
+        </div>
+
+        <div class="question-block">
+            <label class="q-label">Collaborateur</label>
+            <input type="text" name="collaborateur" placeholder="Nom et Prénom" required>
+        </div>
+
+        <div class="question-block">
+            <label class="q-label">Fonction</label>
+            <div class="radio-group full-width-options">
+                <div class="radio-option"><input type="radio" name="fonction" value="Stagiaire" id="f1" required><label for="f1">Stagiaire</label></div>
+                <div class="radio-option"><input type="radio" name="fonction" value="Apprenti" id="f2"><label for="f2">Apprenti</label></div>
+                <div class="radio-option"><input type="radio" name="fonction" value="Consultant Junior" id="f3"><label for="f3">Consultant Junior</label></div>
+                <div class="radio-option"><input type="radio" name="fonction" value="Consultant Expérimenté" id="f4"><label for="f4">Consultant Expérimenté</label></div>
+                <div class="radio-option"><input type="radio" name="fonction" value="Consultant Senior" id="f5"><label for="f5">Consultant Senior</label></div>
+                <div class="radio-option"><input type="radio" name="fonction" value="Consultant Manager" id="f6"><label for="f6">Consultant Manager</label></div>
+                <div class="radio-option"><input type="radio" name="fonction" value="Consultant Senior Manager" id="f7"><label for="f7">Consultant Senior Manager</label></div>
+                <div class="radio-option"><input type="radio" name="fonction" value="Principal" id="f8"><label for="f8">Principal</label></div>              
+                <div class="radio-option"><input type="radio" name="fonction" value="Associé" id="f9"><label for="f9">Associé</label></div>
+            </div>
+        </div>
+        <div class="question-block">
+            <label class="q-label">Date d'entrée</label>
+            <input type="date" id="date_entree" name="date_entree" required>
+        </div>
+        <input type="hidden" id="anciennete" name="anciennete">
+
+        <div id="loader">Chargement des questions...</div>
+        <div id="dynamic-questions-area"></div>
+
+        <h2>Contact</h2>
+        <div class="question-block">
+            <label class="q-label">Resteras-tu en contact avec le cabinet à l'avenir (notamment via des événements alumni par exemple) ? </label>
+            <div class="radio-group wide-options">
+                <div class="radio-option">
+                    <input type="radio" name="contact_futur" value="Oui" id="contact_oui" required>
+                    <label for="contact_oui">Oui</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" name="contact_futur" value="Non" id="contact_non" required>
+                    <label for="contact_non">Non</label>
+                </div>
+            </div>
+            
+            <div id="email_contact_div">
+                <label class="q-label" style="font-size:0.95rem; margin-top:15px;">Super ! Sur quel email peut-on te contacter ?</label>
+                <input type="email" name="email_contact" placeholder="ton@email.com" style="max-width: 400px;">
+            </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">Envoyer mon bilan</button>
+    </form>
+</div>
+
+<script>
+    // CONFIGURATION SUPABASE
+    const supabaseUrl = 'https://xzksnuqmrpspuljrbpul.supabase.co'; 
+    const supabaseKey = 'sb_publishable_AJWejPG4k-7XaZCaC__DAg_hmw5CPS5'; 
+    const sbClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        
+        // 1. Initialisation des champs fixes
+        const dateInput = document.getElementById('date_form');
+        if(dateInput) dateInput.valueAsDate = new Date();
+        initLogicFixedFields();
+
+        // 2. CHARGEMENT DYNAMIQUE DES QUESTIONS
+        await loadAndRenderQuestions();
+    });
+
+    // --- LOGIQUE DE CIBLAGE (STAGIAIRE/CDI + QUESTIONS PARENTES MULTIPLES) ---
+    // --- LOGIQUE DE CIBLAGE (STAGIAIRE/CDI + QUESTIONS PARENTES MULTIPLES) ---
+    function updateQuestionVisibility() {
+        const selectedRadio = document.querySelector('input[name="fonction"]:checked');
+        if (!selectedRadio) return; 
+        
+        const fonction = selectedRadio.value;
+        const isStagiaire = (fonction === 'Stagiaire' || fonction === 'Apprenti');
+        const userTarget = isStagiaire ? 'STAGIAIRE' : 'CDI';
+
+        document.querySelectorAll('#dynamic-questions-area .question-block').forEach(block => {
+            const qTarget = block.getAttribute('data-target');
+            const parentId = block.getAttribute('data-parent');
+            let parentConditionRaw = block.getAttribute('data-parent-condition'); 
+            
+            // Sécurité : Si null ou vide, on assume "Oui" par défaut
+            if (!parentConditionRaw || parentConditionRaw === "null" || parentConditionRaw.trim() === "") {
+                parentConditionRaw = "Oui";
+            }
+            
+            // 1. Analyse des conditions autorisées
+            let allowedConditions = [];
+            try {
+                // On essaie de parser comme du JSON
+                let parsed = JSON.parse(parentConditionRaw);
+                if (Array.isArray(parsed)) {
+                    allowedConditions = parsed;
+                } else {
+                    allowedConditions = [parsed.toString()];
+                }
+            } catch(e) {
+                // Si ça échoue (ex: c'était juste le mot "Oui"), on le met dans un tableau
+                allowedConditions = [parentConditionRaw];
+            }
+            
+            // 2. Vérification Cible
+            const targetMatch = (qTarget === 'ALL' || qTarget === userTarget);
+            
+            // 3. Vérification de la question Parente
+            let parentMatch = true; 
+            if (parentId && parentId !== "null" && parentId !== "") {
+                const parentSelectedRadio = document.querySelector(`input[name="${parentId}"]:checked`);
+                
+                // Le parent est matché SI une option est cochée ET que sa valeur est DANS notre liste de conditions
+                if (parentSelectedRadio) {
+                    parentMatch = allowedConditions.includes(parentSelectedRadio.value);
+                } else {
+                    parentMatch = false; // Aucun choix fait sur le parent, on masque l'enfant
+                }
+            }
+
+            // 4. Affichage ou Masquage
+            if (targetMatch && parentMatch) {
+                block.style.display = 'block';
+                block.querySelectorAll('input, textarea').forEach(el => el.disabled = false);
+            } else {
+                block.style.display = 'none';
+                block.querySelectorAll('input, textarea').forEach(el => {
+                    el.disabled = true;
+                    if (el.type === 'radio' || el.type === 'checkbox') el.checked = false;
+                    else el.value = ''; 
+                });
+            }
+        });
+    }
+
+    // --- LE MOTEUR DE RENDU (C'est ici que la magie opère) ---
+    // --- LE MOTEUR DE RENDU (C'est ici que la magie opère) ---
+    async function loadAndRenderQuestions() {
+        const loader = document.getElementById('loader');
+        const container = document.getElementById('dynamic-questions-area');
+
+        try {
+            const { data: questions, error } = await sbClient
+                .from('questions_master')
+                .select('*')
+                .eq('is_active', true)
+                .order('order_index');
+
+            if (error) throw error;
+
+            loader.style.display = 'none';
+
+            questions.forEach((q, index) => {
+                const block = document.createElement('div');
+                block.className = 'question-block';
+                block.setAttribute('data-target', q.target_audience || 'ALL');
+                block.setAttribute('data-parent', q.parent_question_id || "");
+                block.setAttribute('data-parent-condition', q.parent_answer_condition || 'Oui');
+                block.style.display = 'none';
+                
+                const labelHTML = `<label class="q-label">${q.label}</label>`;
+                let inputHTML = '';
+
+                if (q.input_type === 'textarea') {
+                    inputHTML = `<textarea name="${q.id}" required></textarea>`;
+                } 
+                else if (q.input_type === 'scale_1_5') {
+                    inputHTML = `
+                    <div class="scale-line">
+                        <span class="scale-text left">Faible</span>
+                        <div class="radio-group">
+                            ${[1,2,3,4,5].map(n => `
+                                <div class="radio-option">
+                                    <input type="radio" name="${q.id}" value="${n}" id="${q.id}_${n}" required>
+                                    <label for="${q.id}_${n}">${n}</label>
+                                </div>`).join('')}
+                        </div>
+                        <span class="scale-text right">Élevée</span>
+                    </div>`;
+                }
+                else if (q.input_type === 'scale_1_10') {
+                    inputHTML = `
+                    <div class="scale-line">
+                        <span class="scale-text left">Faible</span>
+                        <div class="radio-group" style="gap:2px;">
+                            ${[1,2,3,4,5,6,7,8,9,10].map(n => `
+                                <div class="radio-option">
+                                    <input type="radio" name="${q.id}" value="${n}" id="${q.id}_${n}" required>
+                                    <label for="${q.id}_${n}" style="width:35px; padding:10px 0;">${n}</label>
+                                </div>`).join('')}
+                        </div>
+                        <span class="scale-text right">Élevée</span>
+                    </div>`;
+                }
+                else if (q.input_type === 'yes_no') {
+                    inputHTML = `
+                    <div class="radio-group wide-options">
+                        <div class="radio-option"><input type="radio" name="${q.id}" value="Oui" id="${q.id}_oui" onchange="updateQuestionVisibility()" required><label for="${q.id}_oui">Oui</label></div>
+                        <div class="radio-option"><input type="radio" name="${q.id}" value="Non" id="${q.id}_non" onchange="updateQuestionVisibility()" required><label for="${q.id}_non">Non</label></div>
+                    </div>`;
+                }
+                else if (q.input_type === 'radio_list') {
+                    const opts = q.options || ['Option 1', 'Option 2'];
+                    inputHTML = `
+                    <div class="radio-group full-width-options">
+                        ${opts.map((opt, i) => `
+                            <div class="radio-option">
+                                <input type="radio" name="${q.id}" value="${opt}" id="${q.id}_${i}" onchange="updateQuestionVisibility()" required>
+                                <label for="${q.id}_${i}">${opt}</label>
+                            </div>`).join('')}
+                    </div>`;
+                }
+
+                const errorHTML = `<div class="error-text">Merci de répondre à cette question.</div>`;
+
+                block.innerHTML = labelHTML + inputHTML + errorHTML;
+                container.appendChild(block);
+            });
+
+            attachValidationListeners();
+            updateQuestionVisibility();
+
+        } catch (err) {
+            console.error(err);
+            loader.textContent = "Erreur de chargement du formulaire.";
+            Swal.fire({ toast: true, position: 'top-end', title: 'Erreur de connexion', text: 'Impossible de charger les questions dynamiques.', icon: 'error', showConfirmButton: false, timer: 3000 });
+        }    
+    }
+
+    // --- LOGIQUE CHAMPS FIXES (Contact, Date...) ---
+    function initLogicFixedFields() {
+        // Email Toggle
+        const emailDiv = document.getElementById('email_contact_div');
+        const emailInput = emailDiv.querySelector('input');
+        const radioOui = document.getElementById('contact_oui');
+        const radioNon = document.getElementById('contact_non');
+
+        function toggleEmail() {
+            if (radioOui.checked) {
+                emailDiv.classList.add('visible');
+                emailInput.required = true;
+            } else {
+                emailDiv.classList.remove('visible');
+                emailInput.required = false;
+                emailInput.value = '';
+            }
+        }
+        radioOui.addEventListener('change', toggleEmail);
+        radioNon.addEventListener('change', toggleEmail);
+
+        // Ancienneté
+        function calcAnciennete() {
+            const start = new Date(document.getElementById('date_entree').value);
+            const end = new Date(document.getElementById('date_form').value);
+            if(start && end && end > start) {
+                let years = end.getFullYear() - start.getFullYear();
+                let months = end.getMonth() - start.getMonth();
+                if (months < 0) { years--; months += 12; }
+                document.getElementById('anciennete').value = `${years} ans et ${months} mois`;
+            }
+        }
+        document.getElementById('date_entree').addEventListener('change', calcAnciennete);
+        document.getElementById('date_form').addEventListener('change', calcAnciennete);
+        // Écoute des boutons radios "Fonction" pour filtrer les questions
+        const fonctionRadios = document.querySelectorAll('input[name="fonction"]');
+        fonctionRadios.forEach(radio => {
+            radio.addEventListener('change', updateQuestionVisibility);
+        });
+    }
+
+    // --- VALIDATION VISUELLE ---
+    function attachValidationListeners() {
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(el => {
+            el.addEventListener('input', () => clearError(el));
+            el.addEventListener('change', () => clearError(el));
+        });
+    }
+
+    function showError(input) {
+        if(input.type === 'radio') {
+            input.closest('.radio-group').style.border = "1px solid #ef4444";
+            input.closest('.radio-group').style.backgroundColor = "#fef2f2";
+        } else {
+            input.style.borderColor = "#ef4444";
+            input.style.backgroundColor = "#fef2f2";
+        }
+    }
+
+    function clearError(input) {
+        if(input.type === 'radio') {
+            input.closest('.radio-group').style.border = "1px solid transparent";
+            input.closest('.radio-group').style.backgroundColor = "transparent";
+        } else {
+            input.style.borderColor = "#cbd5e1";
+            input.style.backgroundColor = "white";
+        }
+    }
+
+    // --- SOUMISSION DU FORMULAIRE (V2) ---
+// --- SOUMISSION DU FORMULAIRE (AVEC SWEETALERT2) ---
+    document.getElementById('offboardingForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // 1. Validation Rapide
+        const form = e.target;
+// ✅ Remplacement du message de validation
+        if (!form.checkValidity()) {
+            Array.from(form.elements).forEach(el => {
+                if(!el.validity.valid) showError(el);
+            });
+            
+            Swal.fire({
+                title: 'Formulaire incomplet',
+                text: 'Veuillez remplir tous les champs obligatoires avant l\'envoi.',
+                icon: 'warning',
+                confirmButtonColor: '#0f172a'
+            });
+            return;
+        }
+        const btn = document.getElementById('submitBtn');
+        btn.textContent = "Envoi en cours...";
+        btn.disabled = true;
+
+        try {
+            const formData = new FormData(form);
+            const rawData = Object.fromEntries(formData.entries());
+
+            // 2. Construction du Payload V2
+            const payload = {
+                date_form: rawData.date_form,
+                collaborateur: rawData.collaborateur,
+                fonction: rawData.fonction,
+                date_entree: rawData.date_entree,
+                anciennete: document.getElementById('anciennete').value,
+                contact_futur: rawData.contact_futur,
+                email_contact: rawData.email_contact || null,
+                answers: {} 
+            };
+
+            // On met tout le reste dans le JSON 'answers'
+            const fixedKeys = ['date_form', 'collaborateur', 'fonction', 'date_entree', 'anciennete', 'contact_futur', 'email_contact'];
+            
+            for (const [key, value] of Object.entries(rawData)) {
+                if (!fixedKeys.includes(key)) {
+                    payload.answers[key] = value;
+                }
+            }
+
+            // 3. Envoi Supabase
+            const { error } = await sbClient.from('offboarding_responses_v2').insert([payload]);
+
+            if (error) throw error;
+
+            // ✅ Pop-up de succès (Attend le clic sur OK avant de recharger)
+            Swal.fire({
+                title: 'Bilan envoyé !',
+                text: 'Merci, votre bilan de départ a été enregistré avec succès.',
+                icon: 'success',
+                confirmButtonColor: '#0f172a'
+            }).then(() => {
+                window.location.reload(); 
+            });
+
+        } catch (err) {
+            console.error(err);
+            
+            // ❌ Pop-up d'erreur
+            Swal.fire({
+                title: 'Erreur technique',
+                text: "Impossible d'enregistrer le bilan : " + err.message,
+                icon: 'error',
+                confirmButtonColor: '#0f172a'
+            });
+            
+            btn.textContent = "Réessayer";
+            btn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
