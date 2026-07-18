@@ -227,7 +227,7 @@
 
     // --- LE MOTEUR DE RENDU (C'est ici que la magie opère) ---
     // --- LE MOTEUR DE RENDU (C'est ici que la magie opère) ---
-    async function loadAndRenderQuestions() {
+async function loadAndRenderQuestions() {
         const loader = document.getElementById('loader');
         const container = document.getElementById('dynamic-questions-area');
 
@@ -241,6 +241,9 @@
             if (error) throw error;
 
             loader.style.display = 'none';
+
+            // 💡 NOUVEAU : On crée un tableau pour stocker la question de fin
+            let finalQuestions = [];
 
             questions.forEach((q, index) => {
                 const block = document.createElement('div');
@@ -304,10 +307,19 @@
                 }
 
                 const errorHTML = `<div class="error-text">Merci de répondre à cette question.</div>`;
-
                 block.innerHTML = labelHTML + inputHTML + errorHTML;
-                container.appendChild(block);
+
+                // 💡 L'ASTUCE EST ICI : 
+                // On détecte la question contenant le mot "rester". 
+                if (q.label.toLowerCase().includes('rester')) {
+                    finalQuestions.push(block); // On la met de côté
+                } else {
+                    container.appendChild(block); // On affiche les autres normalement
+                }
             });
+
+            // 💡 On injecte la question mise de côté TOUT À LA FIN des questions dynamiques
+            finalQuestions.forEach(block => container.appendChild(block));
 
             attachValidationListeners();
             updateQuestionVisibility();
